@@ -33,6 +33,15 @@ func fronthandler(w http.ResponseWriter, r *http.Request) {
 
 	expires := time.Now().Add(time.Minute * 10)
 
+	// this will not work since impersonation is not used
+	// s, err := storage.SignedURL(bucketName, objectName, &storage.SignedURLOptions{
+	// 	Scheme:         storage.SigningSchemeV4,
+	// 	GoogleAccessID: serviceAccountName,
+	// 	Method:         http.MethodGet,
+	// 	Expires:        expires,
+	// })
+
+	// this will work
 	s, err := storage.SignedURL(bucketName, objectName, &storage.SignedURLOptions{
 		Scheme:         storage.SigningSchemeV4,
 		GoogleAccessID: serviceAccountName,
@@ -60,6 +69,7 @@ func fronthandler(w http.ResponseWriter, r *http.Request) {
 		Method:  http.MethodGet,
 		Expires: expires,
 	})
+
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 	}

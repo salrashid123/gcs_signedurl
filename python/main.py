@@ -1,6 +1,4 @@
 
-
-
 import os
 
 from flask import Flask
@@ -20,8 +18,8 @@ def hello_world():
     bucket_name = os.environ.get("BUCKET_NAME")
     sa_email =  os.environ.get("SA_EMAIL")
 
-    credentials, project = google.auth.default()   
 
+    credentials, project = google.auth.default()   
 
     storage_client = storage.Client()
     data_bucket = storage_client.bucket(bucket_name)
@@ -33,6 +31,8 @@ def hello_world():
         target_scopes = 'https://www.googleapis.com/auth/devstorage.read_only',
         lifetime=2)
 
+    # using the default credentials in the blob.generate_signed_url() will not work
+    # signed_url = blob.generate_signed_url(expires_at_ms, credentials=credentials)
     signed_url = blob.generate_signed_url(expires_at_ms, credentials=signing_credentials)
 
     return signed_url, 200, {'Content-Type': 'text/plain'}

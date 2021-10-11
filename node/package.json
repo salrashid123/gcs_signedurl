@@ -13,8 +13,10 @@
   "author": "Google LLC",
   "license": "Apache-2.0",
   "dependencies": {
+    "@google-cloud/iam-credentials": "^1.1.1",
     "@google-cloud/storage": "^5.14.8",
     "express": "^4.17.1",
-    "google-auth-library": "^7.10.0"
+    "google-auth-library": "^7.10.0",
+    "package.json": "^2.0.1"
   }
 }

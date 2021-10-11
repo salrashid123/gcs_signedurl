@@ -40,9 +40,13 @@ public class TestApp {
 		GoogleCredentials sourceCredentials;
 		try {
 			sourceCredentials =  GoogleCredentials.getApplicationDefault();
-			ImpersonatedCredentials targetCredentials = ImpersonatedCredentials.create(sourceCredentials, saEmail, null,Arrays.asList("https://www.googleapis.com/auth/devstorage.read_only"), 2);
 
-			Storage storage_service = StorageOptions.newBuilder().setCredentials(targetCredentials).build().getService();      
+			// you don't need to use impersonation in java, it detects the env and uses it automatically
+			//ImpersonatedCredentials targetCredentials = ImpersonatedCredentials.create(sourceCredentials, saEmail, null,Arrays.asList("https://www.googleapis.com/auth/devstorage.read_only"), 2);
+			//Storage storage_service = StorageOptions.newBuilder().setCredentials(targetCredentials).build().getService();    
+
+			
+			Storage storage_service = StorageOptions.newBuilder().setCredentials(sourceCredentials).build().getService();      
 			
 			BlobId blobId = BlobId.of(bucketName, objectName);
 			BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
