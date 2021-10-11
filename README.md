@@ -6,7 +6,10 @@ Code snippet to create a GCS Signed URL in Cloud Run, Cloud Functions and GCE VM
 - [Cloud Run](https://cloud.google.com/run/docs)
 
 - Why am i writing this repo?  
-  because it isn't clear that in those environment that with _some languages_ you can "just use" the default credentials (`node`, `java`) while in others you need to explicitly  use [service account impersonation](https://cloud.google.com/iam/docs/impersonating-service-accounts) (`go`)...and finally in `python`, you _should_ use the the impersonated credential type directly to sign.  Documented [samples for signedURL](https://cloud.google.com/storage/docs/samples/storage-generate-signed-url-v4) uses actual keys!  don't do this!
+  because it isn't clear that in those environment that with _some languages_ you can "just use" the default credentials (`node`, `java`) while in others you need to explicitly  use [service account impersonation](https://cloud.google.com/iam/docs/impersonating-service-accounts) (`go`)...and finally in `python`, you _should_ use the the impersonated credential type directly to sign.
+  
+- Whats wrong with the Documented [samples for signedURL](https://cloud.google.com/storage/docs/samples/storage-generate-signed-url-v4)?
+  They use service account keys.. don't do that!
 
 - Why Impersonation?  
   Well, Cloud Run, Cloud Functions and GCE environments do not have anyway to sign anything (and no, do NOT embed a service account key file anywhere!).  Since those environments can sign by themselves, they need to use an API to sign on behalf of itself.  That API is is listed above
