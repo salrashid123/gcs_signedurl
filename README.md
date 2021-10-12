@@ -73,7 +73,7 @@ then build the docker image, push to gcr then deploy to cloud run
 
 ### Python
 
-[google-auth python](https://google-auth.readthedocs.io/en/master/) offers two ways to `signer` interfaces you can use:
+[google-auth python](https://google-auth.readthedocs.io/en/master/) offers two `signer` interfaces you can use:
 
 * [compute_engine.IDTokenCredentials.signer](https://google-auth.readthedocs.io/en/master/reference/google.auth.compute_engine.html#google.auth.compute_engine.IDTokenCredentials.signer)
 
