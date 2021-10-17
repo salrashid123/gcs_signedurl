@@ -60,7 +60,58 @@ curl -s `curl -s $CR_URL`
 
 ### golang
 
-In golang, we're using the IAMCredentials api to sign the bytes.  [PR 4604](https://github.com/googleapis/google-cloud-go/pull/4604) seeks to automate that
+In golang, we're using the IAMCredentials api to sign the bytes.
+
+After [PR 4604](https://github.com/googleapis/google-cloud-go/pull/4604) was merged, this is done automatically if you are using
+
+- [BucketHandle.SignedURL](https://pkg.go.dev/cloud.google.com/go/storage#BucketHandle.SignedURL)
+
+```golang
+	storageClient, _ := storage.NewClient(ctx)
+	s, _ := storageClient.Bucket(bucketName).SignedURL(objectName, &storage.SignedURLOptions{
+		Method:  http.MethodGet,
+		Expires: expires,
+	})
+```
+
+but if you use 
+
+- [storage.SigneURL](https://pkg.go.dev/cloud.google.com/go/storage#SignedURL), you still need to do this manually.  
+
+See [issues/1495#issuecomment-915514120](https://github.com/googleapis/google-cloud-go/issues/1495#issuecomment-915514120)
+
+```golang
+	ctx := context.Background()
+	rootTokenSource, _ := google.DefaultTokenSource(ctx, "https://www.googleapis.com/auth/iam")
+	delegates := []string{}
+	s, _ := storage.SignedURL(bucketName, objectName, &storage.SignedURLOptions{
+		Scheme:         storage.SigningSchemeV4,
+		GoogleAccessID: serviceAccountName,
+		SignBytes: func(b []byte) ([]byte, error) {
+			client := oauth2.NewClient(context.TODO(), rootTokenSource)
+			service, err := iamcredentials.New(client)
+			if err != nil {
+				return nil, fmt.Errorf("storage: Error creating IAMCredentials: %v", err)
+			}
+			signRequest := &iamcredentials.SignBlobRequest{
+				Payload:   base64.StdEncoding.EncodeToString(b),
+				Delegates: delegates,
+			}
+			name := fmt.Sprintf("projects/-/serviceAccounts/%s", serviceAccountName)
+			at, err := service.Projects.ServiceAccounts.SignBlob(name, signRequest).Do()
+			if err != nil {
+				return nil, fmt.Errorf("storage: Error calling iamcredentials.SignBlob: %v", err)
+			}
+			sDec, err := base64.StdEncoding.DecodeString(at.SignedBlob)
+			if err != nil {
+				return nil, fmt.Errorf("storage: Error decoding iamcredentials.SignBlob response: %v", err)
+			}
+			return sDec, nil
+		},
+		Method:  http.MethodGet,
+		Expires: expires,
+	})
+```
 
 ### java
 

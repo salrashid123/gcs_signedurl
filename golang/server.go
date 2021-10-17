@@ -23,14 +23,6 @@ var (
 
 func fronthandler(w http.ResponseWriter, r *http.Request) {
 
-	ctx := context.Background()
-
-	rootTokenSource, err := google.DefaultTokenSource(ctx, "https://www.googleapis.com/auth/iam")
-	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-	}
-	delegates := []string{}
-
 	expires := time.Now().Add(time.Minute * 10)
 
 	// this will not work since impersonation is not used
@@ -41,7 +33,33 @@ func fronthandler(w http.ResponseWriter, r *http.Request) {
 	// 	Expires:        expires,
 	// })
 
+	// **********************************
+
+	//ctx := context.Background()
+	// storageClient, err := storage.NewClient(ctx)
+	// if err != nil {
+	// 	fmt.Fprintf(os.Stderr, "Error getting client %s\n", err)
+	// 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	// }
+
+	// s, err := storageClient.Bucket(bucketName).SignedURL(objectName, &storage.SignedURLOptions{
+	// 	Method:  http.MethodGet,
+	// 	Expires: expires,
+	// })
+	// if err != nil {
+	// 	fmt.Fprintf(os.Stderr, "Error getting signedURL %s\n", err)
+	// 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	// }
+
 	// this will work
+	ctx := context.Background()
+
+	rootTokenSource, err := google.DefaultTokenSource(ctx, "https://www.googleapis.com/auth/iam")
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	}
+	delegates := []string{}
+
 	s, err := storage.SignedURL(bucketName, objectName, &storage.SignedURLOptions{
 		Scheme:         storage.SigningSchemeV4,
 		GoogleAccessID: serviceAccountName,
@@ -64,13 +82,14 @@ func fronthandler(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				return nil, fmt.Errorf("oauth2/google: Error decoding iamcredentials.SignBlob response: %v", err)
 			}
-			return []byte(sDec), nil
+			return sDec, nil
 		},
 		Method:  http.MethodGet,
 		Expires: expires,
 	})
 
 	if err != nil {
+		fmt.Printf("%v", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 	}
 	fmt.Println(s)
