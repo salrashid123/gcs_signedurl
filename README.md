@@ -4,7 +4,7 @@ Code snippet to create a GCS [Signed URL](https://cloud.google.com/storage/docs/
 
 
 - Why am i writing this repo?  
-  because it isn't clear that in those environment that with _some languages_ you can "just use" the default credentials (`node`, `java`) while in others you need to explicitly  use [service account impersonation](https://cloud.google.com/iam/docs/impersonating-service-accounts) (`go`)...and finally in `python`, you _should_ use the the impersonated credential type directly to sign.
+  because it isn't clear that in those environment that with _some languages_ you can "just use" the default credentials (`node`, `java`, `go`) if and only if you enabled [service account impersonation](https://cloud.google.com/iam/docs/impersonating-service-accounts).
   
 - Whats wrong with the Documented [samples for signedURL](https://cloud.google.com/storage/docs/samples/storage-generate-signed-url-v4)?  
   They use service account keys.. don't do that!
@@ -13,7 +13,7 @@ Code snippet to create a GCS [Signed URL](https://cloud.google.com/storage/docs/
   Well, Cloud Run, Cloud Functions and GCE environments do not have anyway to sign anything (and no, do NOT embed a service account key file anywhere!).  Since those environments can sign by themselves, they need to use an API to sign on behalf of itself.  That API is is listed above
 
 - Why are they different in different languages?  
-  `java`, `node` automatically detects that its running in a Cloud Run|GCE and "knows" it can't sign by itself and instead attempts to use impersonation automatically.  In `go`, it doesn't do that so you need to directly use that API.  In `python`, all the examples i saw around incorrectly uses the wrong Credential type to sign.
+  `java`, `node` and `go` (now) automatically detects that its running in a Cloud Run|GCE and "knows" it can't sign by itself and instead attempts to use impersonation automatically. In `python`, all the examples i saw around incorrectly uses the wrong Credential type to sign.
 
 Impersonated signing uses ([iamcredentials.serviceAccounts.signBlob](https://cloud.google.com/iam/docs/reference/credentials/rest/v1/projects.serviceAccounts/signBlob).
 
