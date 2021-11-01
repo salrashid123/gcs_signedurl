@@ -21,6 +21,10 @@ The following examples uses the ambient service account to sign (eg, the service
 
 Finally, if you must use a key, try to embed it into hardware, if possible.
   - [GCS signedURLs and GCP Authentication with Trusted Platform Module](https://medium.com/google-cloud/gcs-signedurls-and-gcp-authentication-with-trusted-platform-module-482faff2ac04)
+
+
+>> *NOTE* : one you enable a service account to impersonate itself and invoke `iamcredentials.generateAccessToken or even `.signBlob()`, `.signJWT()`, the `acces_token` is essentially a long-term credentials:  an user that gets hold of a 1hour long access_token can turn around and reuse it every 50mins to get a new token valid for another hour..
+
 ### Setup
 
 ```bash
