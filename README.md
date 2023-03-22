@@ -7,16 +7,14 @@ Code snippet to create a GCS [Signed URL](https://cloud.google.com/storage/docs/
   because it isn't clear that in those environment that with _some languages_ you can "just use" the default credentials (`node`, `java`, `go`) if and only if you enabled [service account impersonation](https://cloud.google.com/iam/docs/impersonating-service-accounts).
   
 - Whats wrong with the Documented [samples for signedURL](https://cloud.google.com/storage/docs/samples/storage-generate-signed-url-v4)?  
-  They use service account keys.. don't do that!
+  Not much (atleast anymore), doesn't show the specific impersonation required for GCF|CR|GKE.
 
 - Why Impersonation?  
-  Well, Cloud Run, Cloud Functions and GCE environments do not have anyway to sign anything (and no, do NOT embed a service account key file anywhere!).  Since those environments can sign by themselves, they need to use an API to sign on behalf of itself.  That API is is listed above
+  Well, Cloud Run, Cloud Functions and GCE environments do not have anyway to sign anything (and no, do NOT embed a service account key file anywhere!).  Since those environments can sign by themselves, they need to use an API to sign on behalf of itself.  That API is basically a proxy for a service account key:  [iamcredentials.serviceAccounts.signBlob](https://cloud.google.com/iam/docs/reference/credentials/rest/v1/projects.serviceAccounts/signBlob)
 
 - Why are they different in different languages?  
-  `java`, `node` and `go` (now) automatically detects that its running in a Cloud Run|GCE and "knows" it can't sign by itself and instead attempts to use impersonation automatically. In `python`, all the examples i saw around incorrectly uses the wrong Credential type to sign.
-
-Impersonated signing uses ([iamcredentials.serviceAccounts.signBlob](https://cloud.google.com/iam/docs/reference/credentials/rest/v1/projects.serviceAccounts/signBlob).
-
+  `java`, `node` and `go` (now) automatically detects that its running in a Cloud Run|GCE and "knows" it can't sign by itself and instead attempts to use impersonation automatically. 
+  
 The following examples uses the ambient service account to sign (eg, the service account cloud run uses is what signs the URL).  It would be a couple more steps to make cloud run sign on behalf of _another_ service account (and significantly more steps for java and node that made some assumptions on your behalf already)
 
 Finally, if you must use a key, try to embed it into hardware, if possible.
@@ -41,7 +39,9 @@ gsutil cp file.txt gs://$BUCKET_NAME
 # allow cloud run's default service account access
 gsutil acl ch -u $SA_EMAIL:R gs://$BUCKET_NAME/file.txt
 
-gcloud iam service-accounts  add-iam-policy-binding   --role=roles/iam.serviceAccountTokenCreator  \
+# enable 'self impersonatin'
+gcloud iam service-accounts  add-iam-policy-binding \
+ --role=roles/iam.serviceAccountTokenCreator  \
  --member=serviceAccount:$SA_EMAIL $SA_EMAIL
 
 gcloud config set run/region us-central1
@@ -78,50 +78,14 @@ After [PR 4604](https://github.com/googleapis/google-cloud-go/pull/4604) was mer
 	})
 ```
 
-but if you use 
-
-- [storage.SigneURL](https://pkg.go.dev/cloud.google.com/go/storage#SignedURL), you still need to do this manually.  
-
-See [issues/1495#issuecomment-915514120](https://github.com/googleapis/google-cloud-go/issues/1495#issuecomment-915514120)
-
-```golang
-	ctx := context.Background()
-	rootTokenSource, _ := google.DefaultTokenSource(ctx, "https://www.googleapis.com/auth/iam")
-	delegates := []string{}
-	s, _ := storage.SignedURL(bucketName, objectName, &storage.SignedURLOptions{
-		Scheme:         storage.SigningSchemeV4,
-		GoogleAccessID: serviceAccountName,
-		SignBytes: func(b []byte) ([]byte, error) {
-			client := oauth2.NewClient(context.TODO(), rootTokenSource)
-			service, err := iamcredentials.New(client)
-			if err != nil {
-				return nil, fmt.Errorf("storage: Error creating IAMCredentials: %v", err)
-			}
-			signRequest := &iamcredentials.SignBlobRequest{
-				Payload:   base64.StdEncoding.EncodeToString(b),
-				Delegates: delegates,
-			}
-			name := fmt.Sprintf("projects/-/serviceAccounts/%s", serviceAccountName)
-			at, err := service.Projects.ServiceAccounts.SignBlob(name, signRequest).Do()
-			if err != nil {
-				return nil, fmt.Errorf("storage: Error calling iamcredentials.SignBlob: %v", err)
-			}
-			sDec, err := base64.StdEncoding.DecodeString(at.SignedBlob)
-			if err != nil {
-				return nil, fmt.Errorf("storage: Error decoding iamcredentials.SignBlob response: %v", err)
-			}
-			return sDec, nil
-		},
-		Method:  http.MethodGet,
-		Expires: expires,
-	})
-```
 
 ### java
 
 for java, first build
 ```
 mvn clean install
+
+java -jar ./target/docker-0.0.1-SNAPSHOT.jar
 ```
 
 then build the docker image, push to gcr then deploy to cloud run

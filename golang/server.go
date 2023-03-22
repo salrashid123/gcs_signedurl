@@ -21,16 +21,6 @@ func fronthandler(w http.ResponseWriter, r *http.Request) {
 
 	expires := time.Now().Add(time.Minute * 10)
 
-	// this will not work
-	// s, err := storage.SignedURL(bucketName, objectName, &storage.SignedURLOptions{
-	// 	Scheme:         storage.SigningSchemeV4,
-	// 	GoogleAccessID: serviceAccountName,
-	// 	Method:         http.MethodGet,
-	// 	Expires:        expires,
-	// })
-
-	// **********************************
-
 	// this will work
 	ctx := context.Background()
 	storageClient, err := storage.NewClient(ctx)

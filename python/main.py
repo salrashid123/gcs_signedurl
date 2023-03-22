@@ -23,7 +23,7 @@ def hello_world():
 
     storage_client = storage.Client()
     data_bucket = storage_client.bucket(bucket_name)
-    blob = data_bucket.get_blob("file.txt")
+    blob = data_bucket.blob("file.txt")
     expires_at_ms = datetime.now() + timedelta(minutes=30)
     signing_credentials = impersonated_credentials.Credentials(
         source_credentials=credentials,
