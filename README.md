@@ -8,7 +8,7 @@ Code snippet to create a GCS [Signed URL](https://cloud.google.com/storage/docs/
 The following examples uses the ambient service account to sign (eg, the service account cloud run uses is what signs the URL).  It would be a couple more steps to make cloud run sign on behalf of _another_ service account (and significantly more steps for java and node that made some assumptions on your behalf already)
 
 Finally, if you must use a key, try to embed it into hardware, if possible.
-  - [GCS signedURLs and GCP Authentication with Trusted Platform Module](https://medium.com/google-cloud/gcs-signedurls-and-gcp-authentication-with-trusted-platform-module-482faff2ac04)
+  - [GCS signedURLs and GCP Authentication with Trusted Platform Module](https://blog.salrashid.dev/en/articles/2021/gcs_tpm/)
 
 
 ### Setup
